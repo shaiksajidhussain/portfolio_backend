@@ -7,6 +7,7 @@ const connectDB = require('./config/db');
 const adminRoutes = require('./routes/adminRoutes');
 const projectRoutes = require('./routes/projectRoutes');
 const emailRoutes = require('./routes/emailRoutes');
+const viewsRoutes = require('./routes/viewsRoutes');
 
 const app = express();
 
@@ -21,6 +22,7 @@ connectDB();
 app.use('/api/admin', adminRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/email', emailRoutes);
+app.use('/api/views', viewsRoutes);
 
 // For Vercel
 module.exports = app;
