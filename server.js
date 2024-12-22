@@ -8,6 +8,11 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Basic route to test if server is running
+app.get('/', (req, res) => {
+  res.json({ message: 'Server is running!' });
+});
+
 // MongoDB connection
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log('MongoDB connected'))
@@ -44,5 +49,11 @@ app.get('/api/views/:page', async (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// For Vercel, we need to export the Express app
+module.exports = app;
+
+// Only listen if we're running directly (not on Vercel)
+if (process.env.NODE_ENV !== 'production') {
+  const PORT = process.env.PORT || 5000;
+  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+}
