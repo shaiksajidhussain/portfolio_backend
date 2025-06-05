@@ -18,6 +18,11 @@ app.use(express.json());
 // Connect to Database
 connectDB();
 
+// Base API route
+app.get('/', (req, res) => {
+    res.json({ message: 'Welcome to the Portfolio API by sajid hussain' });
+});
+
 // Routes
 app.use('/api/admin', adminRoutes);
 app.use('/api/projects', projectRoutes);
