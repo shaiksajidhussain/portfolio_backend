@@ -5,6 +5,10 @@ const carauselSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  profilePic: {
+    type: String,
+    required: true,
+  }
 });
 
 const Carausel = mongoose.model('Carausel', carauselSchema);

@@ -3,8 +3,8 @@ const Carausel = require('../models/Carauselmodel');
 // Create a new carousel item
 const createCarausel = async (req, res) => {
   try {
-    const { imageUrl } = req.body;
-    const newCarausel = new Carausel({ imageUrl });
+    const { imageUrl, profilePic } = req.body;
+    const newCarausel = new Carausel({ imageUrl, profilePic });
     const savedCarausel = await newCarausel.save();
     res.status(201).json(savedCarausel);
   } catch (error) {
@@ -38,10 +38,10 @@ const getCarauselById = async (req, res) => {
 // Update a carousel item by ID
 const updateCarausel = async (req, res) => {
   try {
-    const { imageUrl } = req.body;
+    const { imageUrl, profilePic } = req.body;
     const updatedCarausel = await Carausel.findByIdAndUpdate(
       req.params.id,
-      { imageUrl },
+      { imageUrl, profilePic },
       { new: true }
     );
     if (!updatedCarausel) {
