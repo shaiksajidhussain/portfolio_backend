@@ -2,14 +2,6 @@ const express = require('express');
 const cors = require('cors');
 const connectDB = require('./config/db');
 
-const adminRoutes = require('./routes/adminRoutes');
-const projectRoutes = require('./routes/projectRoutes');
-const emailRoutes = require('./routes/emailRoutes');
-const viewsRoutes = require('./routes/viewsRoutes');
-const carauselRoutes = require('./routes/carauselRoutes');
-const blogRoutes = require('./routes/blogRoutes');
-const resumeRoutes = require('./routes/resumeRoutes');
-
 const app = express();
 
 // CORS
@@ -36,8 +28,8 @@ app.use(
 app.options('*', cors());
 app.use(express.json());
 
-// DB
-connectDB();
+// DB - Don't block server startup on connection
+connectDB().catch(err => console.error('DB connection error:', err.message));
 
 // Health
 app.get('/', (req, res) => {
@@ -46,18 +38,30 @@ app.get('/', (req, res) => {
 
 app.get('/favicon.ico', (req, res) => res.status(204).end());
 
-// Routes
-app.use('/api/admin', adminRoutes);
-app.use('/api/projects', projectRoutes);
-app.use('/api/email', emailRoutes);
-app.use('/api/views', viewsRoutes);
-app.use('/api/carausel', carauselRoutes);
-app.use('/api/blog', blogRoutes);
-app.use('/api/resumes', resumeRoutes);
+// Routes - Wrap in try-catch to prevent startup crashes
+try {
+  const adminRoutes = require('./routes/adminRoutes');
+  const projectRoutes = require('./routes/projectRoutes');
+  const emailRoutes = require('./routes/emailRoutes');
+  const viewsRoutes = require('./routes/viewsRoutes');
+  const carauselRoutes = require('./routes/carauselRoutes');
+  const blogRoutes = require('./routes/blogRoutes');
+  const resumeRoutes = require('./routes/resumeRoutes');
+
+  app.use('/api/admin', adminRoutes);
+  app.use('/api/projects', projectRoutes);
+  app.use('/api/email', emailRoutes);
+  app.use('/api/views', viewsRoutes);
+  app.use('/api/carausel', carauselRoutes);
+  app.use('/api/blog', blogRoutes);
+  app.use('/api/resumes', resumeRoutes);
+} catch (err) {
+  console.error('Error loading routes:', err.message);
+}
 
 // Error handler
 app.use((err, req, res, next) => {
-  console.error(err);
+  console.error('Unhandled error:', err.message);
   res.status(500).json({ message: 'Internal Server Error' });
 });
 
