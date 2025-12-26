@@ -40,7 +40,6 @@ const connectDB = async () => {
                 maxPoolSize: 10,
                 minPoolSize: 1,
                 bufferCommands: false, // Disable mongoose buffering for serverless
-                bufferMaxEntries: 0, // Disable mongoose buffering
             });
             
             console.log('MongoDB connected successfully');
