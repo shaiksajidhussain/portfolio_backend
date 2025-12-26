@@ -55,12 +55,18 @@ app.use('/api', async (req, res, next) => {
         await ensureConnection();
         next();
     } catch (error) {
-        console.error('Database connection error in middleware:', error);
+        console.error('Database connection error in middleware:', error.message);
+        console.error('Error stack:', error.stack);
         // Return error response if DB connection fails
         if (!res.headersSent) {
             return res.status(503).json({ 
                 message: 'Database connection failed', 
-                error: 'Service temporarily unavailable. Please try again later.' 
+                error: error.message || 'Service temporarily unavailable. Please try again later.',
+                // Include error code in development for debugging
+                ...(process.env.NODE_ENV === 'development' && {
+                    errorCode: error.code,
+                    errorName: error.name
+                })
             });
         }
         next(error);
