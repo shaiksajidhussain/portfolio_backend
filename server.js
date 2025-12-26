@@ -38,26 +38,37 @@ app.get('/', (req, res) => {
 
 app.get('/favicon.ico', (req, res) => res.status(204).end());
 
-// Routes - Wrap in try-catch to prevent startup crashes
-try {
-  const adminRoutes = require('./routes/adminRoutes');
-  const projectRoutes = require('./routes/projectRoutes');
-  const emailRoutes = require('./routes/emailRoutes');
-  const viewsRoutes = require('./routes/viewsRoutes');
-  const carauselRoutes = require('./routes/carauselRoutes');
-  const blogRoutes = require('./routes/blogRoutes');
-  const resumeRoutes = require('./routes/resumeRoutes');
+// Routes - Load lazily on first request to prevent startup crashes
+let routesLoaded = false;
 
-  app.use('/api/admin', adminRoutes);
-  app.use('/api/projects', projectRoutes);
-  app.use('/api/email', emailRoutes);
-  app.use('/api/views', viewsRoutes);
-  app.use('/api/carausel', carauselRoutes);
-  app.use('/api/blog', blogRoutes);
-  app.use('/api/resumes', resumeRoutes);
-} catch (err) {
-  console.error('Error loading routes:', err.message);
-}
+app.use((req, res, next) => {
+  if (!routesLoaded) {
+    try {
+      const adminRoutes = require('./routes/adminRoutes');
+      const projectRoutes = require('./routes/projectRoutes');
+      const emailRoutes = require('./routes/emailRoutes');
+      const viewsRoutes = require('./routes/viewsRoutes');
+      const carauselRoutes = require('./routes/carauselRoutes');
+      const blogRoutes = require('./routes/blogRoutes');
+      const resumeRoutes = require('./routes/resumeRoutes');
+
+      app.use('/api/admin', adminRoutes);
+      app.use('/api/projects', projectRoutes);
+      app.use('/api/email', emailRoutes);
+      app.use('/api/views', viewsRoutes);
+      app.use('/api/carausel', carauselRoutes);
+      app.use('/api/blog', blogRoutes);
+      app.use('/api/resumes', resumeRoutes);
+
+      routesLoaded = true;
+      console.log('Routes loaded successfully');
+    } catch (err) {
+      console.error('Error loading routes:', err.message);
+      return res.status(500).json({ error: 'Failed to load routes: ' + err.message });
+    }
+  }
+  next();
+});
 
 // Error handler
 app.use((err, req, res, next) => {
