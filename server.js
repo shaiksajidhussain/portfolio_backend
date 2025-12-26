@@ -2,13 +2,19 @@ const express = require('express');
 const cors = require('cors');
 const connectDB = require('./config/db');
 
-const adminRoutes = require('./routes/adminRoutes');
-const projectRoutes = require('./routes/projectRoutes');
-const emailRoutes = require('./routes/emailRoutes');
-const viewsRoutes = require('./routes/viewsRoutes');
-const carauselRoutes = require('./routes/carauselRoutes');
-const blogRoutes = require('./routes/blogRoutes');
-const resumeRoutes = require('./routes/resumeRoutes');
+console.log('Loading routes...');
+try {
+  const adminRoutes = require('./routes/adminRoutes');
+  const projectRoutes = require('./routes/projectRoutes');
+  const emailRoutes = require('./routes/emailRoutes');
+  const viewsRoutes = require('./routes/viewsRoutes');
+  const carauselRoutes = require('./routes/carauselRoutes');
+  const blogRoutes = require('./routes/blogRoutes');
+  const resumeRoutes = require('./routes/resumeRoutes');
+  console.log('All routes loaded successfully');
+} catch (e) {
+  console.error('Error loading routes:', e.message);
+}
 
 const app = express();
 
@@ -49,18 +55,23 @@ app.get('/', (req, res) => {
 app.get('/favicon.ico', (req, res) => res.status(204).end());
 
 // Routes
-app.use('/api/admin', adminRoutes);
-app.use('/api/projects', projectRoutes);
-app.use('/api/email', emailRoutes);
-app.use('/api/views', viewsRoutes);
-app.use('/api/carausel', carauselRoutes);
-app.use('/api/blog', blogRoutes);
-app.use('/api/resumes', resumeRoutes);
+try {
+  app.use('/api/admin', require('./routes/adminRoutes'));
+  app.use('/api/projects', require('./routes/projectRoutes'));
+  app.use('/api/email', require('./routes/emailRoutes'));
+  app.use('/api/views', require('./routes/viewsRoutes'));
+  app.use('/api/carausel', require('./routes/carauselRoutes'));
+  app.use('/api/blog', require('./routes/blogRoutes'));
+  app.use('/api/resumes', require('./routes/resumeRoutes'));
+  console.log('All routes registered successfully');
+} catch (e) {
+  console.error('Error registering routes:', e.message);
+}
 
 // Error handler
 app.use((err, req, res, next) => {
-  console.error(err);
-  res.status(500).json({ message: 'Internal Server Error' });
+  console.error('Error:', err);
+  res.status(500).json({ message: 'Internal Server Error', error: err.message });
 });
 
 module.exports = app;
