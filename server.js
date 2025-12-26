@@ -18,7 +18,8 @@ const app = express();
 const allowedOrigins = [
   'https://sanjusazid.vercel.app',
   'https://sanjusazid1.vercel.app',
-  'https://sanjusazid2.vercel.app'
+  'https://sanjusazid2.vercel.app',
+  'http://localhost:5173'
 ];
 
 // Middleware
