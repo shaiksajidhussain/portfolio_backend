@@ -66,15 +66,22 @@ const setupRoutes = () => {
       const router = require(file);
       if (router && typeof router === 'object') {
         app.use(path, router);
-        console.log(`✓ Loaded ${name} routes`);
+        console.log(`✓ Loaded ${name} routes at ${path}`);
       } else {
-        console.warn(`✗ ${name} route is not a valid router`);
+        console.warn(`✗ ${name} route is not a valid router - got ${typeof router}`);
+        throw new Error(`Invalid router type for ${name}`);
       }
     } catch (err) {
-      console.error(`✗ Failed to load ${name} routes:`, err.message);
-      // Fallback error route
+      console.error(`✗ Failed to load ${name} routes:`);
+      console.error(`  File: ${file}`);
+      console.error(`  Error: ${err.message}`);
+      console.error(`  Stack: ${err.stack}`);
+      // Fallback error route with detailed message
       app.use(path, (req, res) => {
-        res.status(500).json({ error: `${name} routes unavailable` });
+        res.status(500).json({ 
+          error: `${name} routes unavailable`,
+          details: err.message
+        });
       });
     }
   });
@@ -83,8 +90,9 @@ const setupRoutes = () => {
 // Load all routes
 try {
   setupRoutes();
+  console.log('✓ All routes setup complete');
 } catch (err) {
-  console.error('Critical error in setupRoutes:', err);
+  console.error('Critical error in setupRoutes:', err.message);
 }
 
 // 404 handler
