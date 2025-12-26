@@ -1,6 +1,5 @@
 const express = require('express');
 const cors = require('cors');
-const connectDB = require('./config/db');
 
 const app = express();
 
@@ -28,80 +27,84 @@ app.use(
 app.options('*', cors());
 app.use(express.json());
 
-// DB - Don't block server startup on connection
-connectDB().catch(err => console.error('DB connection error:', err.message));
-
-// Health check endpoint
+// Health check endpoint - ALWAYS available
 app.get('/', (req, res) => {
   res.json({ status: 'API running' });
 });
 
 app.get('/favicon.ico', (req, res) => res.status(204).end());
 
-// Routes - Load with proper error handling
-const loadRoutes = () => {
+// Initialize DB connection (async, non-blocking)
+const initDB = async () => {
   try {
-    const adminRoutes = require('./routes/adminRoutes');
-    app.use('/api/admin', adminRoutes);
+    const connectDB = require('./config/db');
+    await connectDB();
+    console.log('✓ Database connected successfully');
   } catch (err) {
-    console.error('Failed to load admin routes:', err.message);
-  }
-
-  try {
-    const projectRoutes = require('./routes/projectRoutes');
-    app.use('/api/projects', projectRoutes);
-  } catch (err) {
-    console.error('Failed to load project routes:', err.message);
-  }
-
-  try {
-    const emailRoutes = require('./routes/emailRoutes');
-    app.use('/api/email', emailRoutes);
-  } catch (err) {
-    console.error('Failed to load email routes:', err.message);
-  }
-
-  try {
-    const viewsRoutes = require('./routes/viewsRoutes');
-    app.use('/api/views', viewsRoutes);
-  } catch (err) {
-    console.error('Failed to load views routes:', err.message);
-  }
-
-  try {
-    const carauselRoutes = require('./routes/carauselRoutes');
-    app.use('/api/carausel', carauselRoutes);
-  } catch (err) {
-    console.error('Failed to load carausel routes:', err.message);
-  }
-
-  try {
-    const blogRoutes = require('./routes/blogRoutes');
-    app.use('/api/blog', blogRoutes);
-  } catch (err) {
-    console.error('Failed to load blog routes:', err.message);
-  }
-
-  try {
-    const resumeRoutes = require('./routes/resumeRoutes');
-    app.use('/api/resumes', resumeRoutes);
-  } catch (err) {
-    console.error('Failed to load resume routes:', err.message);
+    console.error('✗ Database connection failed:', err.message);
+    // Don't exit - API should still work
   }
 };
 
-// Load all routes at startup
-loadRoutes();
+// Start DB connection in background
+initDB();
+
+// Routes - Load with individual error handling
+const setupRoutes = () => {
+  const routes = [
+    { name: 'admin', path: '/api/admin', file: './routes/adminRoutes' },
+    { name: 'projects', path: '/api/projects', file: './routes/projectRoutes' },
+    { name: 'email', path: '/api/email', file: './routes/emailRoutes' },
+    { name: 'views', path: '/api/views', file: './routes/viewsRoutes' },
+    { name: 'carausel', path: '/api/carausel', file: './routes/carauselRoutes' },
+    { name: 'blog', path: '/api/blog', file: './routes/blogRoutes' },
+    { name: 'resumes', path: '/api/resumes', file: './routes/resumeRoutes' }
+  ];
+
+  routes.forEach(({ name, path, file }) => {
+    try {
+      const router = require(file);
+      if (router && typeof router === 'object') {
+        app.use(path, router);
+        console.log(`✓ Loaded ${name} routes`);
+      } else {
+        console.warn(`✗ ${name} route is not a valid router`);
+      }
+    } catch (err) {
+      console.error(`✗ Failed to load ${name} routes:`, err.message);
+      // Fallback error route
+      app.use(path, (req, res) => {
+        res.status(500).json({ error: `${name} routes unavailable` });
+      });
+    }
+  });
+};
+
+// Load all routes
+try {
+  setupRoutes();
+} catch (err) {
+  console.error('Critical error in setupRoutes:', err);
+}
 
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({ error: 'Route not found' });
 });
 
-// Error handler - must be last
+// Error handler - MUST be last
 app.use((err, req, res, next) => {
-  console.error('Unhandled error:', err.message, err.stack);
-  res.status(500).json({ message: 'Internal Server Error', error: err.message });
+  console.error('Unhandled error:', {
+    message: err.message,
+    stack: err.stack,
+    url: req.url,
+    method: req.method
+  });
+  
+  res.status(err.status || 500).json({
+    error: 'Internal Server Error',
+    message: process.env.NODE_ENV === 'development' ? err.message : undefined
+  });
 });
 
 module.exports = app;
