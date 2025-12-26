@@ -36,8 +36,10 @@ app.use(
 app.options('*', cors());
 app.use(express.json());
 
-// DB
-connectDB();
+// DB - connect but don't crash if it fails
+connectDB().catch(err => {
+  console.error('Failed to connect to MongoDB:', err.message);
+});
 
 // Health
 app.get('/', (req, res) => {
