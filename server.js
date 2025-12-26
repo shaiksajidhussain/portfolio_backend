@@ -2,20 +2,6 @@ const express = require('express');
 const cors = require('cors');
 const connectDB = require('./config/db');
 
-console.log('Loading routes...');
-try {
-  const adminRoutes = require('./routes/adminRoutes');
-  const projectRoutes = require('./routes/projectRoutes');
-  const emailRoutes = require('./routes/emailRoutes');
-  const viewsRoutes = require('./routes/viewsRoutes');
-  const carauselRoutes = require('./routes/carauselRoutes');
-  const blogRoutes = require('./routes/blogRoutes');
-  const resumeRoutes = require('./routes/resumeRoutes');
-  console.log('All routes loaded successfully');
-} catch (e) {
-  console.error('Error loading routes:', e.message);
-}
-
 const app = express();
 
 // CORS
@@ -54,18 +40,54 @@ app.get('/', (req, res) => {
 
 app.get('/favicon.ico', (req, res) => res.status(204).end());
 
-// Routes
+// Routes - load all routes
 try {
   app.use('/api/admin', require('./routes/adminRoutes'));
-  app.use('/api/projects', require('./routes/projectRoutes'));
-  app.use('/api/email', require('./routes/emailRoutes'));
-  app.use('/api/views', require('./routes/viewsRoutes'));
-  app.use('/api/carausel', require('./routes/carauselRoutes'));
-  app.use('/api/blog', require('./routes/blogRoutes'));
-  app.use('/api/resumes', require('./routes/resumeRoutes'));
-  console.log('All routes registered successfully');
 } catch (e) {
-  console.error('Error registering routes:', e.message);
+  console.error('Error loading admin routes:', e.message);
+  app.use('/api/admin', (req, res) => res.status(500).json({ error: 'Admin route error' }));
+}
+
+try {
+  app.use('/api/projects', require('./routes/projectRoutes'));
+} catch (e) {
+  console.error('Error loading project routes:', e.message);
+  app.use('/api/projects', (req, res) => res.status(500).json({ error: 'Project route error' }));
+}
+
+try {
+  app.use('/api/email', require('./routes/emailRoutes'));
+} catch (e) {
+  console.error('Error loading email routes:', e.message);
+  app.use('/api/email', (req, res) => res.status(500).json({ error: 'Email route error' }));
+}
+
+try {
+  app.use('/api/views', require('./routes/viewsRoutes'));
+} catch (e) {
+  console.error('Error loading views routes:', e.message);
+  app.use('/api/views', (req, res) => res.status(500).json({ error: 'Views route error' }));
+}
+
+try {
+  app.use('/api/carausel', require('./routes/carauselRoutes'));
+} catch (e) {
+  console.error('Error loading carausel routes:', e.message);
+  app.use('/api/carausel', (req, res) => res.status(500).json({ error: 'Carausel route error' }));
+}
+
+try {
+  app.use('/api/blog', require('./routes/blogRoutes'));
+} catch (e) {
+  console.error('Error loading blog routes:', e.message);
+  app.use('/api/blog', (req, res) => res.status(500).json({ error: 'Blog route error' }));
+}
+
+try {
+  app.use('/api/resumes', require('./routes/resumeRoutes'));
+} catch (e) {
+  console.error('Error loading resume routes:', e.message);
+  app.use('/api/resumes', (req, res) => res.status(500).json({ error: 'Resume route error' }));
 }
 
 // Error handler
