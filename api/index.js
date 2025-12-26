@@ -28,7 +28,7 @@ if (missingEnvVars.length > 0) {
 
 const express = require('express');
 const cors = require('cors');
-const connectDB = require('../config/db');
+const { connectDB, ensureConnection } = require('../config/db');
 
 const app = express();
 
@@ -48,14 +48,31 @@ app.use(
 app.options('*', cors());
 app.use(express.json());
 
-/* ---------------- DB Connection ---------------- */
-// Initialize DB connection (non-blocking for serverless)
-// Connection is handled in the db.js module with connection reuse
-// This must not block or throw - serverless functions need to start immediately
+/* ---------------- DB Connection Middleware ---------------- */
+// Ensure DB connection before handling API routes
+app.use('/api', async (req, res, next) => {
+    try {
+        await ensureConnection();
+        next();
+    } catch (error) {
+        console.error('Database connection error in middleware:', error);
+        // Return error response if DB connection fails
+        if (!res.headersSent) {
+            return res.status(503).json({ 
+                message: 'Database connection failed', 
+                error: 'Service temporarily unavailable. Please try again later.' 
+            });
+        }
+        next(error);
+    }
+});
+
+/* ---------------- DB Connection Initialization ---------------- */
+// Start connection in background (non-blocking)
+// Connection will be ready when routes need it
 connectDB().catch(err => {
-  console.error('MongoDB connection failed:', err.message);
-  // Don't throw - allows function to start even if DB connection fails
-  // Routes will handle DB errors individually
+    console.error('Initial MongoDB connection attempt failed:', err.message);
+    // Connection will be retried on first API request via middleware
 });
 
 /* ---------------- Health Check ---------------- */

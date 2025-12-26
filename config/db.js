@@ -1,30 +1,54 @@
 const mongoose = require('mongoose');
 
-let isConnecting = false;
-let isConnected = false;
+let connectionPromise = null;
 
 const connectDB = async () => {
-    // Prevent multiple connection attempts
-    if (isConnecting || isConnected) {
-        return;
+    // Check if already connected
+    if (mongoose.connection.readyState === 1) {
+        return mongoose.connection;
     }
     
-    isConnecting = true;
+    // If connection is in progress, return the existing promise
+    if (connectionPromise) {
+        return connectionPromise;
+    }
+    
+    // Start new connection
+    connectionPromise = (async () => {
+        try {
+            const mongoURI = process.env.MONGODB_URI || "mongodb+srv://sanjusazid41:8kILKkYcDKFUTN9P@cluster0.fdb48.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
+            
+            await mongoose.connect(mongoURI, {
+                serverSelectionTimeoutMS: 10000,
+                socketTimeoutMS: 45000,
+                bufferCommands: false, // Disable mongoose buffering for serverless
+                bufferMaxEntries: 0, // Disable mongoose buffering
+            });
+            
+            console.log('MongoDB connected successfully');
+            return mongoose.connection;
+        } catch (error) {
+            console.error('MongoDB connection error:', error.message);
+            connectionPromise = null; // Reset on error so we can retry
+            throw error;
+        }
+    })();
+    
+    return connectionPromise;
+};
+
+// Helper function to ensure DB is connected before operations
+const ensureConnection = async () => {
+    if (mongoose.connection.readyState === 1) {
+        return; // Already connected
+    }
+    
     try {
-        const mongoURI = process.env.MONGODB_URI || "mongodb+srv://sanjusazid41:8kILKkYcDKFUTN9P@cluster0.fdb48.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
-        
-        await mongoose.connect(mongoURI, {
-            serverSelectionTimeoutMS: 5000,
-            socketTimeoutMS: 5000,
-        });
-        
-        isConnected = true;
-        console.log('MongoDB connected successfully');
+        await connectDB();
     } catch (error) {
-        console.error('MongoDB connection error:', error.message);
-        // Don't throw - app continues without DB
-        isConnecting = false;
+        console.error('Failed to ensure DB connection:', error.message);
+        throw error;
     }
 };
 
-module.exports = connectDB; 
+module.exports = { connectDB, ensureConnection }; 
