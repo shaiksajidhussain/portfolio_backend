@@ -40,6 +40,9 @@ const ProjectSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
+    orderNumber: {
+        type: Number
+    },
     // Links
     liveLink: {
         type: String
