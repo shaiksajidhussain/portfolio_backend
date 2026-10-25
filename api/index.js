@@ -1,3 +1,5 @@
+require('mongoose/lib/connectionState');
+
 const express = require('express');
 const cors = require('cors');
 const { connectDB, ensureConnection } = require('../config/db');
