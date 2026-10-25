@@ -4,7 +4,7 @@ const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
         user: process.env.EMAIL,
-        pass: process.env.EMAIL_PASSWORD
+        pass: String(process.env.EMAIL_PASSWORD || '').replace(/\s+/g, '')
     }
 });
 
@@ -12,7 +12,8 @@ exports.sendEmail = async (req, res) => {
     const { name, email, message } = req.body;
     
     const mailOptions = {
-        from: email,
+        from: process.env.EMAIL,
+        replyTo: email,
         to: process.env.EMAIL, // Your email where you'll receive messages
         subject: `Portfolio Contact from ${name}`,
         text: `
