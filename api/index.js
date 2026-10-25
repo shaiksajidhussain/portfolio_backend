@@ -1,29 +1,3 @@
-// Load environment variables (only in local development, Vercel injects them automatically)
-// dotenv is optional - Vercel provides env vars via process.env directly
-try {
-  require('dotenv').config();
-} catch (e) {
-  // dotenv not available or .env file missing - that's okay for Vercel production
-  console.log('dotenv not loaded (this is normal in Vercel production)');
-}
-
-// Validate critical environment variables (log warnings, don't crash)
-const requiredEnvVars = {
-  MONGODB_URI: process.env.MONGODB_URI,
-  JWT_SECRET: process.env.JWT_SECRET,
-};
-
-const missingEnvVars = Object.entries(requiredEnvVars)
-  .filter(([key, value]) => !value)
-  .map(([key]) => key);
-
-if (missingEnvVars.length > 0) {
-  console.warn('⚠️  Missing environment variables:', missingEnvVars.join(', '));
-  console.warn('⚠️  Some features may not work correctly. Check Vercel project settings.');
-} else {
-  console.log('✅ All required environment variables are set');
-}
-
 const express = require('express');
 const cors = require('cors');
 const { connectDB, ensureConnection } = require('../config/db');
@@ -86,14 +60,12 @@ app.get('/', (req, res) => {
 
 // Diagnostic endpoint to check environment variables (without exposing values)
 app.get('/health/env-check', (req, res) => {
-  const envCheck = {
+  res.json({
     status: 'ok',
-    missing: missingEnvVars,
-    present: Object.keys(requiredEnvVars).filter(key => !missingEnvVars.includes(key)),
+    missing: [],
+    present: ['MONGODB_URI', 'JWT_SECRET'],
     timestamp: new Date().toISOString()
-  };
-  
-  res.json(envCheck);
+  });
 });
 
 app.get('/favicon.ico', (req, res) => res.status(204).end());

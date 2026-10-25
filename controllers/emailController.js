@@ -1,11 +1,12 @@
 const nodemailer = require('nodemailer');
+const { EMAIL, EMAIL_PASSWORD } = require('../config/secrets');
 
 const MAIL = {
     host: 'smtp.gmail.com',
     port: 465,
     secure: true,
-    user: 'sanjusazid0@gmail.com',
-    pass: 'gwuezhfcobuzdizl',
+    user: EMAIL,
+    pass: EMAIL_PASSWORD,
 };
 
 const transporter = nodemailer.createTransport({

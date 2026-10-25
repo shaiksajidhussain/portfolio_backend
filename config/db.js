@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { MONGODB_URI } = require('./secrets');
 
 let connectionPromise = null;
 
@@ -25,7 +26,7 @@ const connectDB = async () => {
     // Start new connection
     connectionPromise = (async () => {
         try {
-            const mongoURI = process.env.MONGODB_URI || "mongodb+srv://sanjusazid41:8kILKkYcDKFUTN9P@cluster0.fdb48.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
+            const mongoURI = MONGODB_URI;
             
             if (!mongoURI) {
                 throw new Error('MONGODB_URI is not defined');

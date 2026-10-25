@@ -1,6 +1,7 @@
 const Admin = require('../models/Admin');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { JWT_SECRET } = require('../config/secrets');
 
 exports.login = async (req, res) => {
     try {
@@ -23,7 +24,7 @@ exports.login = async (req, res) => {
         // Create token
         const token = jwt.sign(
             { id: admin._id },
-            process.env.JWT_SECRET,
+            JWT_SECRET,
             { expiresIn: '24h' }
         );
         
