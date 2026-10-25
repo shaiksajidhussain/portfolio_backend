@@ -1,20 +1,30 @@
 const nodemailer = require('nodemailer');
 
+const MAIL = {
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true,
+    user: 'sanjusazid0@gmail.com',
+    pass: 'gwuezhfcobuzdizl',
+};
+
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: MAIL.host,
+    port: MAIL.port,
+    secure: MAIL.secure,
     auth: {
-        user: process.env.EMAIL,
-        pass: String(process.env.EMAIL_PASSWORD || '').replace(/\s+/g, '')
-    }
+        user: MAIL.user,
+        pass: MAIL.pass,
+    },
 });
 
 exports.sendEmail = async (req, res) => {
     const { name, email, message } = req.body;
-    
+
     const mailOptions = {
-        from: process.env.EMAIL,
+        from: MAIL.user,
         replyTo: email,
-        to: process.env.EMAIL, // Your email where you'll receive messages
+        to: MAIL.user,
         subject: `Portfolio Contact from ${name}`,
         text: `
 Name: ${name}
@@ -29,7 +39,7 @@ Message: ${message}
     <p><strong>Message:</strong></p>
     <p>${message}</p>
 </div>
-        `
+        `,
     };
 
     try {
@@ -39,4 +49,4 @@ Message: ${message}
         console.error('Email error:', error);
         res.status(500).json({ error: 'Failed to send email' });
     }
-}; 
+};

@@ -11,8 +11,6 @@ try {
 const requiredEnvVars = {
   MONGODB_URI: process.env.MONGODB_URI,
   JWT_SECRET: process.env.JWT_SECRET,
-  EMAIL: process.env.EMAIL,
-  EMAIL_PASSWORD: process.env.EMAIL_PASSWORD,
 };
 
 const missingEnvVars = Object.entries(requiredEnvVars)
